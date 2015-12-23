@@ -1,4 +1,4 @@
-function plotResults(game, n, N, policies, fname)
+function plotResults(game, horizon, N, policies, mode, fname)
     % Plot the results of different algorithms in a given scenario.
     % When there are more than 4 algoprithms the figure will look
     % best when viewed in full screen.
@@ -22,7 +22,11 @@ function plotResults(game, n, N, policies, fname)
     colors = {'r', 'g', 'b', 'k', 'y', 'p'};
     for i = 1:l
         % Load saved results and compute regret
-        load([fname '_n_' num2str(n) '_N_' num2str(N) '_' class(policies{i})]);
+        hr = num2str(horizon(1));
+        if numel(horizon)>1
+            hr = [hr '_' num2str(horizon(2))];
+        end
+        load([fname '_' mode '_h_' hr '_N_' num2str(N) '_' class(policies{i}) '.mat']);
         policyName = class(policies{i}); policyName = policyName(7:end);
         policynames{i} = policyName;
         perror = sum(recommendations((1:length(mu)) ~= iBest))/sum(recommendations)

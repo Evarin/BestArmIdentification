@@ -19,11 +19,9 @@ classdef ExpGame<handle
             end
         end
         
-        function [ J ] = play(self, policy, mode, horizon)
-            if ~strcmp(mode, 'budget')
-                throw(MException('EXPPOLICY:BadParameter', ...
-                    'UCB-E can only be used for fixed budget'));
-                policy.init(self.initRewards(horizon), horizon);
+        function [ J, t ] = play(self, policy, mode, horizon)
+            if strcmp(mode, 'budget')
+                policy.init(numel(self.means), 'budget', horizon);
                 reward = zeros(1, horizon);
                 action = zeros(1, horizon);
                 for t = 1:horizon
@@ -32,28 +30,24 @@ classdef ExpGame<handle
                     policy.getReward(reward(t));
                 end
                 J = policy.getRecommendation();
-            else
-                throw(MException('EXPGAME:NotImplemented', ...
-                    'Only fixed budget setup is implemented'));
-            end
-        end
-        
-        function K = initRewards(self,n)
-            % initiates the reward process, and returns the number of
-            % actions
-            K = length(self.arms);
-            self.tabR = zeros(K, n);
-            for t=1:n
-                for a=1:K
-                    self.tabR(a, t) = self.arms{a}.play();
+            elseif strcmp(mode, 'confidence')
+                policy.init(numel(self.means), 'confidence', horizon);
+                t = 0;
+                while ~policy.isConfident()
+                    t = t + 1;
+                    action = policy.decision();
+                    reward = self.reward(action);
+                    policy.getReward(reward);
                 end
+                J = policy.getRecommendation();
+            else
+                throw(MException('EXPGAME:BadParameter', ...
+                    ['Uknown mode ' mode]));
             end
-            self.N = zeros(1,K);
         end
         
         function r = reward(self, a)
-            self.N(a) = self.N(a) + 1;
-            r = self.tabR(a, self.N(a));            
+            r = self.arms{a}.play(); 
         end
     end
 end
