@@ -27,8 +27,8 @@ classdef policySR < ExpPolicy
             nk = ceil(((horizon-nbActions)/logK) ...
                 ./ (nbActions - (0:(nbActions-2))) );
             dnk = nk - [0 nk(1:end-1)];
-            self.steps = [0 cumsum(dnk.*(nbActions:-1:2))];
-            self.curstep = 1;
+            self.steps = [0 cumsum(dnk.*(nbActions:-1:2)) horizon+1];
+            self.curstep = 2;
             self.t = 1;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
@@ -42,7 +42,6 @@ classdef policySR < ExpPolicy
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
             self.S(self.lastAction) = self.S(self.lastAction)  + reward;
-            self.t = self.t + 1;
             if self.t == self.steps(self.curstep)
                 rews = self.S./self.N;
                 m = min(rews); I = find(rews == m);
@@ -53,6 +52,7 @@ classdef policySR < ExpPolicy
                 self.S = self.S(tokeep);
                 self.curstep = self.curstep + 1;
             end
+            self.t = self.t + 1;
         end
         
         function J = getRecommendation(self)
