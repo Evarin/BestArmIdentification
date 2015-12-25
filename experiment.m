@@ -14,8 +14,8 @@ function experiment(game, horizon, N, policy, mode, fname)
     fprintf('%s %d:', class(policy), N);
     for j = 1:N, 
         [r, t] = game.play(policy, mode, horizon);
-        recommendations(j) = recommendations(j) + r;
-        times(j) = times(j) + t;
+        recommendations(j) = r;
+        times(j) = t;
         % Once every N/50 runs, display something and save current state
         % of variables
         if (rem(j, floor(N/50))==0) || (j == N)

@@ -13,12 +13,12 @@ function plotResults(game, horizon, N, policies, mode, fname)
         warning('Found %d best arms, plots will be incorrect', length(iBest));
     end
     
-    clf;
-    hold on;
+    % reading files
+    
     % Common y-axis values
-    ar = -Inf;
-    ad = -Inf;
     policynames = {};
+    perror = zeros(1, l);
+    times = zeros(1, l);
     colors = {'r', 'g', 'b', 'k', 'y', 'p'};
     for i = 1:l
         % Load saved results and compute regret
@@ -29,8 +29,28 @@ function plotResults(game, horizon, N, policies, mode, fname)
         load([fname '_' mode '_h_' hr '_N_' num2str(N) '_' class(policies{i}) '.mat']);
         policyName = class(policies{i}); policyName = policyName(7:end);
         policynames{i} = policyName;
-        perror = sum(recommendations((1:length(mu)) ~= iBest))/sum(recommendations)
-        bar(i, perror);
+        perror(i) = sum(recommendations ~= iBest)/length(recommendations);
+        ptimes(i) = sum(times)/length(times);
+    end
+    
+    % plotting error
+    figure(1);
+    clf;
+    hold on;
+    title('Probability of error');
+    for i=1:l
+        bar(i, perror(i), colors{i});
+    end
+    legend(policynames);
+    
+    % plotting time
+    figure(2);
+    clf;
+    hold on;
+    title('Time to achieve confidence');
+    % Common y-axis values
+    for i=1:l
+        bar(i, ptimes(i), colors{i});
     end
     legend(policynames);
 end

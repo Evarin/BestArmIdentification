@@ -23,7 +23,7 @@ for k = 1:length(policies)
 end
 plotResults(game, horizon, N, policies, 'budget', fname);
 
-
+pause;
 %%% Fixed budgets
 disp('-- Fixed confidence algorithms');
 % Choice of policies to be run
