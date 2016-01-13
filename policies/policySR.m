@@ -17,10 +17,14 @@ classdef policySR < ExpPolicy
         function self = policySR()
         end
         
-        function init(self, nbActions, mode, horizon)
+        function init(self, nbActions, mode, horizon, numArms)
             if ~strcmp(mode, 'budget')
                 throw(MException('EXPPOLICY:BadParameter', ...
                     'SR can only be used for fixed budget'));
+            end
+            if numArms > 1
+                throw(MException('EXPPOLICY:BadParameter', ...
+                    'SR can only find the best arm'));
             end
             self.A = 1:nbActions;
             logK = 0.5 + sum(1./(2:nbActions)); 

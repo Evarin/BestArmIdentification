@@ -16,10 +16,14 @@ classdef policyUCBE < ExpPolicy
             end
         end
         
-        function init(self, nbActions, mode, horizon)
+        function init(self, nbActions, mode, horizon, numArms)
             if ~strcmp(mode, 'budget')
                 throw(MException('EXPPOLICY:BadParameter', ...
                     'UCB-E can only be used for fixed budget'));
+            end
+            if numArms > 1
+                throw(MException('EXPPOLICY:BadParameter', ...
+                    'SR can only find the best arm'));
             end
             self.t = 1;
             self.N = zeros(1, nbActions);

@@ -19,19 +19,22 @@ classdef ExpGame<handle
             end
         end
         
-        function [ J, t ] = play(self, policy, mode, horizon)
+        function [ J, t ] = play(self, policy, mode, horizon, numArms)
             if strcmp(mode, 'budget')
-                policy.init(numel(self.means), 'budget', horizon);
-                reward = zeros(1, horizon);
-                action = zeros(1, horizon);
-                for t = 1:horizon
+                policy.init(numel(self.means), 'budget', horizon, numArms);
+                reward = zeros(1, horizon(1));
+                action = zeros(1, horizon(1));
+                for t = 1:horizon(1)
                     action(t) = policy.decision();
                     reward(t) = self.reward(action(t));
                     policy.getReward(reward(t));
+                    if policy.isConfident()
+                        break
+                    end
                 end
                 J = policy.getRecommendation();
             elseif strcmp(mode, 'confidence')
-                policy.init(numel(self.means), 'confidence', horizon);
+                policy.init(numel(self.means), 'confidence', horizon, numArms);
                 t = 0;
                 while ~policy.isConfident()
                     t = t + 1;

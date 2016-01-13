@@ -7,6 +7,7 @@ classdef policyNaive < ExpPolicy
         S % Cumulated reward with each action
         eps % destination confidence
         delta
+        m
         l % number of attempts
     end
     
@@ -21,6 +22,7 @@ classdef policyNaive < ExpPolicy
             end
             self.eps = horizon(1);
             self.delta = horizon(2);
+            self.m = 1;
             self.l = ceil(4/self.eps^2 * log(2*nbActions/self.delta));
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);

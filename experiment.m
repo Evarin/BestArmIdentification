@@ -1,7 +1,8 @@
-function experiment(game, horizon, N, policy, mode, fname)
+function experiment(game, horizon, numArms, N, policy, mode, fname)
     % Run a number of experiments and save the results subsampling in time
     % Use: experiment(game, n, N, policy, mode, fname),
     % n is the horizon and N the number of played games.
+    % numArms is the number of best Arms we want to obtain
     % for mode = 'budget', n is an int
     % for mode = 'confidence', n is a couple [epsilon, delta]
     
@@ -11,10 +12,12 @@ function experiment(game, horizon, N, policy, mode, fname)
     recommendations = zeros(1, N);
     times = zeros(1, N);
     
-    fprintf('%s %d:', class(policy), N);
-    for j = 1:N, 
-        [r, t] = game.play(policy, mode, horizon);
+    fprintf('%s %d: ', class(policy), N);
+    for j = 1:N
+        fprintf('|%d', j);
+        [r, t] = game.play(policy, mode, horizon, numArms);
         recommendations(j) = r;
+        fprintf(':%d', r(1));
         times(j) = t;
         % Once every N/50 runs, display something and save current state
         % of variables
