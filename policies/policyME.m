@@ -59,13 +59,12 @@ classdef policyME < ExpPolicy
                 sp = sort(p(self.A));
                 med = sp(ceil(length(p)/2));
                 self.A = self.A(p(self.A)>=med);
-                self.lastA = self.t;
                 self.r = self.r + 1;
                 self.eps = self.eps * 0.75;
                 self.delta = self.delta / 2;
             end
             self.nextStop = self.t + length(self.A) * ...
-                round( 1/(self.eps/2)^2*log(3/self.delta) );
+                round( 4/self.eps^2*log(3/self.delta) );
         end
         
         function J = getRecommendation(self)

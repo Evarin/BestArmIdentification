@@ -7,7 +7,6 @@ classdef policyNaive < ExpPolicy
     properties
         l % number of attempts (for fixed confidence)
         isBudget % is the algorithm run in fixed budget or fixed confidence
-        m % number of arms to output
     end
     
     methods

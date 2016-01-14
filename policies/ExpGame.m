@@ -7,6 +7,7 @@ classdef ExpGame<handle
         tabR % internal: array of all rewards
         N % internal: counters for rewards
         means % expectations of bandits
+        H1 % Hardness of the task
     end
     
     methods
@@ -17,6 +18,8 @@ classdef ExpGame<handle
             for i=1:self.nbActions
                 self.means(i) = arms{i}.mean;
             end
+            delta = max(self.means) - self.means;
+            self.H1 = sum(delta(delta>0).^-2);
         end
         
         function [ J, t ] = play(self, policy, mode, horizon, numArms)

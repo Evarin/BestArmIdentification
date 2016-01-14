@@ -19,7 +19,7 @@ function plotResults(game, horizon, N, policies, mode, fname)
     policynames = {};
     perror = zeros(1, l);
     times = zeros(1, l);
-    colors = {'r', 'g', 'b', 'k', 'y', 'p'};
+    colors = {'r', 'g', 'b', 'k', 'y', 'c', 'm', 'g'};
     for i = 1:l
         % Load saved results and compute regret
         hr = num2str(horizon(1));

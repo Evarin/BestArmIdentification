@@ -33,6 +33,7 @@ classdef policyUGapE < ExpPolicy
                     'UGapE can only find the best arm'));
             end
             self.t = 1;
+            self.m = numArms;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
             self.J = zeros(0, 1);
@@ -61,8 +62,8 @@ classdef policyUGapE < ExpPolicy
                 U = mu + self.betas;
                 [~, ou] = sort(U, 2, 'descend');
                 L = mu - self.betas;
-                mth_item = @(arr) arr(self.m);
-                self.B = arrayfun(@(k) U(mth_item(ou(ou ~= k))) - L(k), ...
+                mth_item = @(arr, m) arr(m);
+                self.B = arrayfun(@(k) U(mth_item(ou(ou ~= k), self.m)) - L(k), ...
                                   1:length(L)); % m-max operator
                 [~, ob] = sort(self.B, 2, 'ascend');
                 self.J = ob(1:self.m);

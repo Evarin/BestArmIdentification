@@ -9,8 +9,7 @@ classdef policyOptMAI < ExpPolicy
         Q % max number of rounds
         A % current subset of arms
         T % Top arms
-        m % number of top arms to pick
-        r % current r
+        r % current round
         phase % reset, QE, or AR
         nextStop % next t to call checkpoint
         betar % beta^r(1-beta)
@@ -63,25 +62,27 @@ classdef policyOptMAI < ExpPolicy
                     self.phase = 0;
                 case 2 % AR
                     s = length(self.A);
-                    K = self.m - length(self.T); % question: K-th largest regarding what set?
-                    Delta = max([p-sp(K+1); sp(K)-p]);
-                    subS = 1:length(self.A); % correspondance original A -> current A
-                    while length(self.T)<K && length(self.A)>3*s/4
-                        [~, ia] = max(Delta(subS)); % relative to the current A
-                        a = subS(ia); % relative to the original A
+                    mp = self.m - length(self.T); % K' = K - |T|
+                    Delta = max([p - sp(mp+1); sp(mp) - p]);
+                    subA = 1:length(self.A); % correspondance original A -> current A
+                    while length(self.T) < self.m && ...
+                            length(self.A) > 0.75 * s
+                        [~, ia] = max(Delta(subA)); % relative to the current A
+                        a = subA(ia); % relative to the previous A
                         ta = self.A(ia); % relative to the true set
-                        subS = subS(1:length(subS) ~= ia);
-                        self.A = self.A(1:length(self.A) ~= ia);
-                        if p(a) >= sp(K+1)
+                        subA = subA(1:length(subA) ~= ia);
+                        self.A = self.A(self.A ~= ta);
+                        if p(a) >= sp(mp+1)
                             self.T = [self.T ta];
                         end
                     end
                     self.phase = 0;
             end
             if self.phase == 0 % reset
-                self.betar = (exp(0.2)*0.75) ^self.r * 0.25 * exp(0.2);
+                self.betar = (exp(0.2)*0.75) ^ self.r * 0.25 * exp(0.2);
+                self.r = self.r + 1;
                 if length(self.T) < self.m && ~isempty(self.A)
-                    if length(self.A)> 4*self.m
+                    if length(self.A) >= 4*self.m
                         self.phase = 1; % QE
                         self.T = zeros(1, 0);
                     else

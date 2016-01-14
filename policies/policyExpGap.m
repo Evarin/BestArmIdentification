@@ -9,6 +9,8 @@ classdef policyExpGap < ExpPolicy
         nextStop % next t to call checkpoint
         A % current subset of arms
         r % current round
+        er % epsilon_r
+        dr % delta_r
         phase % phase (itself or ME)
         MEpolicy % ME's instance
     end
@@ -69,19 +71,18 @@ classdef policyExpGap < ExpPolicy
             switch self.phase
                 case 1 % Start ME
                     self.MEpolicy = policyME;
-                    er = 2^(-self.r)/4; % for ME
-                    dr = self.delta /(50*self.r^3);
-                    self.MEpolicy.init(length(self.A), 'confidence', [er/2, dr])
+                    self.MEpolicy.init(length(self.A), 'confidence', ...
+                        [self.er/2, self.dr], 1)
                     self.phase = 2;
                 case 2 % ME ended
                     ba = self.MEpolicy.getRecommendation();
-                    self.A = self.A(p(self.A) >= p(self.A(ba)) - er);
+                    self.A = self.A(p(self.A) >= p(self.A(ba)) - self.er);
                     self.phase = 0;
             end
             if self.phase == 0 % Restarting the loop
-                er = 2^(-self.r)/4;
-                dr = self.delta0/(50*self.r^3);
-                self.nextStop = self.t + length(self.A) * round(2/er^2 * log(2/dr));
+                self.er = 2^(-self.r)/4;
+                self.dr = self.delta / (50*self.r^3);
+                self.nextStop = self.t + length(self.A) * round(2/self.er^2 * log(2/self.dr))
                 self.r = self.r + 1;
                 self.phase = 1;
             end

@@ -13,6 +13,7 @@ function experiment(game, horizon, numArms, N, policy, mode, fname)
     times = zeros(1, N);
     
     fprintf('%s %d: ', class(policy), N);
+    H1 = game.H1;
     for j = 1:N
         fprintf('|%d', j);
         [r, t] = game.play(policy, mode, horizon, numArms);
@@ -30,7 +31,7 @@ function experiment(game, horizon, numArms, N, policy, mode, fname)
                 hr = [hr '_' num2str(horizon(2))];
             end
             save([fname '_' mode '_h_' hr '_N_' num2str(N) '_' class(policy) '.mat'],...
-              'mu', 'horizon', 'N', 'recommendations', 'times');
+              'mu', 'horizon', 'N', 'recommendations', 'times', 'H1');
         end
     end
     fprintf('\n');   

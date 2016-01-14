@@ -7,7 +7,7 @@ classdef policySR < ExpPolicy
     properties
         A % current subset of arms
         steps % n_0...(K-1)
-        curstep % current step
+        r % current round
         nextStop % next t to call checkpoint
     end
     
@@ -25,12 +25,14 @@ classdef policySR < ExpPolicy
                     'SR can only find the best arm'));
             end
             self.A = 1:nbActions;
+            T = horizon(1);
             logK = 0.5 + sum(1./(2:nbActions)); 
-            nk = ceil(((horizon-nbActions)/logK) ...
-                ./ (nbActions - (0:(nbActions-2))) );
+            nk = ceil(((T-nbActions)/logK) ./...
+                (nbActions - (0:(nbActions-2))) );
             dnk = nk - [0 nk(1:end-1)];
-            self.steps = [0 cumsum(dnk.*(nbActions:-1:2)) horizon+1];
-            self.curstep = 2;
+            self.steps = [0 cumsum(dnk.*(nbActions:-1:2)) T+1];
+            self.r = 2;
+            self.nextStop = self.steps(self.r);
             self.t = 1;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
@@ -45,7 +47,7 @@ classdef policySR < ExpPolicy
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
             self.S(self.lastAction) = self.S(self.lastAction)  + reward;
             if self.t == self.nextStop
-                self.checkpoint()
+                self.checkpoint();
             end
             self.t = self.t + 1;
         end
@@ -54,9 +56,9 @@ classdef policySR < ExpPolicy
             p = self.S(self.A) ./ self.N(self.A);
             m = min(p); I = find(p == m);
             tokill = floor(1+rand*length(I));
-            self.A = self.A(1:length(self.A) ~= tokill);
-            self.curstep = self.curstep + 1;
-            self.nextStop = self.steps(self.curstep);
+            self.A = self.A(1:length(self.A) ~= I(tokill));
+            self.r = self.r + 1;
+            self.nextStop = self.steps(self.r);
         end
         
         function J = getRecommendation(self)
