@@ -1,19 +1,15 @@
 classdef policyAUCBE < ExpPolicy
-    % Adaptative UCB-E for any bandit
+    % Adaptative UCB-E for fixed budget, best-arm identification
     %
-    % From 
-    % Audibert, Bubeck, Munos
+    % From Best Arm Identification in Multi-Armed Bandits
+    % by J.-Y. Audibert, S. Bubeck, R. Munos
     
     properties
-        t % Number of the round
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
         a = 1 % Parameter
-        nextStop
-        r
-        T
-        H
+        T % budget
+        nextStop % next t to call checkpoint
+        r % round
+        H % H_1,k
     end
     
     methods
@@ -32,16 +28,18 @@ classdef policyAUCBE < ExpPolicy
                 throw(MException('EXPPOLICY:BadParameter', ...
                     'Adaptative UCB-E can only find the best arm'));
             end
+            self.k = nbActions;
             self.T = horizon(1);
-            self.t = 1;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
             self.r = 0;
+            self.t = 0;
             self.checkpoint();
+            self.t = 1;
         end
         
         function action = decision(self)
-            if self.t <= length(self.N)
+            if self.t <= self.k
                 action = self.t;
             else
                 B = self.S ./ self.N + sqrt(self.a * self.T ./ self.H ./ self.N);
@@ -61,21 +59,22 @@ classdef policyAUCBE < ExpPolicy
         
         function checkpoint(self)
             if self.r == 0
-                self.H = length(self.N);
+                self.H = self.k;
             else
                 m = self.S ./ self.N;
                 delta = max(m) - m;
-                sd = sort(delta);
-                span = (length(self.N)-self.r+1):length(self.N);
-                self.H = max(span./(sd(span).^2));
+                sd = sort(delta); % ascend
+                span = (self.k-self.r+1):self.k;
+                self.H = max(span ./ (sd(span).^2));
             end
-            logK = 0.5 + sum(1./(2:length(self.N))); 
-            self.nextStop = self.t + (length(self.N) - self.r) * ceil(1/logK * (self.T - length(self.N)) / (length(self.N)-self.r));
+            logK = 0.5 + sum(1 ./ (2:self.k)); 
+            self.nextStop = self.t + (self.k - self.r) * ...
+                ceil(1/logK * (self.T - self.k) / (self.k - self.r));
             self.r = self.r + 1;
         end
         
         function J = getRecommendation(self)
-            [~, J] = max(self.S./self.N);
+            [~, J] = max(self.S ./ self.N);
         end
         
     end

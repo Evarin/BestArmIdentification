@@ -1,16 +1,14 @@
 classdef policySR < ExpPolicy
-    % Successive rejects for any bandit
+    % Successive Rejects for fixed budget and best arm identification
     %
-    % From Best Arm Identification in Multi-Armed Bandits, J-Y Audibert...
+    % From Best Arm Identification in Multi-Armed Bandits
+    % by J.-Y. Audibert, S. Bubeck, R. Munos
     
     properties
-        t % Number of the round
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        A % Actives arms
+        A % current subset of arms
         steps % n_0...(K-1)
         curstep % current step
-        lastAction % Stores the last action played
+        nextStop % next t to call checkpoint
     end
     
     methods
@@ -39,24 +37,26 @@ classdef policySR < ExpPolicy
         end
         
         function action = decision(self)
-            self.lastAction = 1 + mod(self.t, length(self.A));
-            action = self.A(self.lastAction);
+            action = self.A(mod(self.t, length(self.A)) + 1);
+            self.lastAction = action;
         end
         
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
             self.S(self.lastAction) = self.S(self.lastAction)  + reward;
-            if self.t == self.steps(self.curstep)
-                rews = self.S./self.N;
-                m = min(rews); I = find(rews == m);
-                tokill = floor(1+rand*length(I));
-                tokeep = (1:length(self.A) ~= tokill);
-                self.N = self.N(tokeep);
-                self.A = self.A(tokeep);
-                self.S = self.S(tokeep);
-                self.curstep = self.curstep + 1;
+            if self.t == self.nextStop
+                self.checkpoint()
             end
             self.t = self.t + 1;
+        end
+        
+        function checkpoint(self)
+            p = self.S(self.A) ./ self.N(self.A);
+            m = min(p); I = find(p == m);
+            tokill = floor(1+rand*length(I));
+            self.A = self.A(1:length(self.A) ~= tokill);
+            self.curstep = self.curstep + 1;
+            self.nextStop = self.steps(self.curstep);
         end
         
         function J = getRecommendation(self)

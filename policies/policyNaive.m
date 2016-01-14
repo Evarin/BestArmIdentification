@@ -1,49 +1,53 @@
 classdef policyNaive < ExpPolicy
-    % Naive policy for fixed confidence and any bandit
+    % Naive policy for multiple almost best arms identification, both fixed
+    % confidence and fixed budget
+    %
+    % Fixed confidence algorithm from 
     
     properties
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        eps % destination confidence
-        delta
-        m
-        l % number of attempts
+        l % number of attempts (for fixed confidence)
+        isBudget % is the algorithm run in fixed budget or fixed confidence
+        m % number of arms to output
     end
     
     methods
         function self = policyNaive()
         end
         
-        function init(self, nbActions, mode, horizon)
-            if ~strcmp(mode, 'confidence')
-                throw(MException('EXPPOLICY:BadParameter', ...
-                    'Naive policy can only be used for fixed confidence'));
+        function init(self, nbActions, mode, horizon, numArms)
+            if strcmp(mode, 'confidence')
+                eps = horizon(1);
+                delta = horizon(2);
+                self.l = ceil(4/eps^2 * log(2*nbActions/delta));
+                self.isBudget = 0;
+            else
+                self.isBudget = 1;
             end
-            self.eps = horizon(1);
-            self.delta = horizon(2);
-            self.m = 1;
-            self.l = ceil(4/self.eps^2 * log(2*nbActions/self.delta));
+            self.t = 1;
+            self.k = nbActions;
+            self.m = numArms;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
         end
         
         function action = decision(self)
-            action = find(self.N<self.l, 1);
+            action = mod(self.t, self.k) + 1;
             self.lastAction = action;
         end
         
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
             self.S(self.lastAction) = self.S(self.lastAction) + reward;
+            self.t = self.t + 1;
         end
         
         function J = getRecommendation(self)
-            [~, J] = max(self.S./self.N);
+            [~, sp] = sort(self.S ./ self.N, 2, 'descend');
+            J = sp(1:self.m);
         end
         
         function r = isConfident(self)
-            r = ~any(self.N<self.l);
+            r = ~self.isBudget && ~any(self.N < self.l);
         end
         
     end

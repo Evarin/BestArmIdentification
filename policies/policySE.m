@@ -1,20 +1,17 @@
 classdef policySE < ExpPolicy
-    % Successive Elimination for all bandits
+    % Successive Elimination for fixed confidence and almost best arm
+    % identification
     %
     % From Action Elimination and Stopping Conditions for the
     % Multi-Armed Bandit and Reinforcement Learning Problems
-    % Even-Dar, Mannor, Mansour
+    % E. Even-Dar, S. Mannor, Y. Mansour
     
     properties
-        t % Number of the round
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        lastAction % Stores the last action played
-        delta
-        eps
-        A
-        round
-        lastA
+        delta % probability of success asked
+        eps % precision asked
+        A % current subset of arms
+        r % current round
+        nextStop % next t to call checkpoint
     end
     
     methods
@@ -33,37 +30,40 @@ classdef policySE < ExpPolicy
             self.eps = horizon(1);
             self.delta = horizon(2);
             self.t = 1;
-            self.round = 1;
+            self.r = 1;
             self.A = 1:nbActions;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
-            self.lastA = 1;
+            self.nextStop = nbActions;
         end
         
         function action = decision(self)
-            action = mod(self.t, length(self.A)) + 1;
+            action = self.A(mod(self.t, length(self.A)) + 1);
             self.lastAction = action;
         end
         
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
             self.S(self.lastAction) = self.S(self.lastAction) + reward;
-            if self.t - self.lastA == length(self.A)
-                p = self.S ./ self.N;
-                pm = max(p(self.A));
-                alpha = 2*sqrt(log(5*length(self.N)*self.round^2)/self.round);
-                % [ pm - p(self.A), alpha]
-                while true
-                    [m, im] = max(pm-p(self.A));
-                    if m < alpha
-                        break;
-                    end
-                    self.A = self.A(1:length(self.A)~=im);
-                end
-                self.lastA = self.t;
-                self.round = self.round + 1;
+            if self.t == self.nextStop
+                self.checkpoint();
             end
             self.t = self.t + 1;
+        end
+        
+        function checkpoint(self)
+            p = self.S ./ self.N;
+            pm = max(p(self.A));
+            alpha = 2*sqrt(log(5*length(self.N)*self.r^2)/self.r);
+            while true
+                [m, im] = max(pm-p(self.A));
+                if m < alpha
+                    break;
+                end
+                self.A = self.A(1:length(self.A)~=im);
+            end
+            self.r = self.r + 1;
+            self.nextStop = self.t + length(self.A);
         end
         
         function J = getRecommendation(self)

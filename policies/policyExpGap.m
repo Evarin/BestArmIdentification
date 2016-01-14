@@ -1,24 +1,16 @@
 classdef policyExpGap < ExpPolicy
-    % Exponential-Gap policy for any bandit
+    % Exponential-Gap policy for fixed confidence, best arm identification
     %
     % From Almost Optimal Exploration in Multi-Armed Bandits
-    % Karnin, Koren, Somekh
+    % by Z. Karnin, T. Koren, O. Somekh
     
     properties
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        t
-        eps
-        delta0
-        delta
-        m
-        l % number of attempts
-        A
-        r
-        phase
-        tr
-        Ar
+        delta % probability of success asked
+        nextStop % next t to call checkpoint
+        A % current subset of arms
+        r % current round
+        phase % phase (itself or ME)
+        MEpolicy % ME's instance
     end
     
     methods
@@ -34,58 +26,65 @@ classdef policyExpGap < ExpPolicy
                 throw(MException('EXPPOLICY:BadParameter', ...
                     'Exponential-Gap can only find the best arm'));
             end
-            self.delta0 = horizon(2);
+            self.delta = horizon(2);
             self.A = 1:nbActions;
             self.r = 1;
             self.phase = 0;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
+            self.t = 0;
+            self.checkpoint();
             self.t = 1;
         end
         
         function action = decision(self)
-            if self.phase == 0
-                er = 2^(-self.r)/4;
-                dr = self.delta0/(50*self.r^3);
-                self.tr = self.t + length(self.A) * round(2/er^2 * log(2/dr))-1;
-                self.phase = 1;
+            switch self.phase
+                case 1 % itself's procedure
+                    action = self.A(mod(self.t, length(self.A)) + 1);
+                case 2 % ME
+                    action = self.A(self.MEpolicy.decision());
             end
-            action = self.A(mod(self.t, length(self.A)) + 1);
             self.lastAction = action;
         end
         
         function getReward(self, reward)
-            self.N(self.lastAction) = self.N(self.lastAction) + 1; 
-            self.S(self.lastAction) = self.S(self.lastAction) + reward;
-            if self.t == self.tr
-                p = self.S ./ self.N;
-                switch self.phase
-                    case 1 % Start ME
-                        self.Ar = self.A(:);
-                        self.eps = 2^(-self.r)/4 /8; % for ME
-                        self.delta = self.delta0 /(50*self.r^3)/2;
-                        self.phase = 2;
-                    case 2 % normal ME
-                        sp = sort(p(self.A));
-                        med = sp(ceil(length(p)/2));
-                        self.A = self.A(p(self.A)>=med);
-                        self.l = self.l + 1;
-                        self.eps = self.eps * 0.75;
-                        self.delta = self.delta / 2;
-                        if length(self.A) == 1
-                            self.phase = 0;
-                        end
-                end
-                switch self.phase
-                    case 2
-                        self.tr = self.t + length(self.A) * round(1/(self.eps/2)^2*log(3/self.delta));
-                    case 0
-                        er = 2^(-self.r)/4;
-                        self.A = self.Ar(p(self.Ar) >= p(self.A) - er);
-                        self.r = self.r + 1;
-                end
+            switch self.phase
+                case 1
+                    self.N(self.lastAction) = self.N(self.lastAction) + 1; 
+                    self.S(self.lastAction) = self.S(self.lastAction) + reward;
+                    if self.t == self.nextStop
+                        self.checkpoint();
+                    end
+                case 2
+                    self.MEpolicy.getReward(reward);
+                    if self.MEpolicy.isConfident()
+                        self.checkpoint();
+                    end
             end
             self.t = self.t + 1;
+        end
+        
+        function checkpoint(self)
+            p = self.S ./ self.N;
+            switch self.phase
+                case 1 % Start ME
+                    self.MEpolicy = policyME;
+                    er = 2^(-self.r)/4; % for ME
+                    dr = self.delta /(50*self.r^3);
+                    self.MEpolicy.init(length(self.A), 'confidence', [er/2, dr])
+                    self.phase = 2;
+                case 2 % ME ended
+                    ba = self.MEpolicy.getRecommendation();
+                    self.A = self.A(p(self.A) >= p(self.A(ba)) - er);
+                    self.phase = 0;
+            end
+            if self.phase == 0 % Restarting the loop
+                er = 2^(-self.r)/4;
+                dr = self.delta0/(50*self.r^3);
+                self.nextStop = self.t + length(self.A) * round(2/er^2 * log(2/dr));
+                self.r = self.r + 1;
+                self.phase = 1;
+            end
         end
         
         function J = getRecommendation(self)

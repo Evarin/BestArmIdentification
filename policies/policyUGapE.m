@@ -1,23 +1,20 @@
 classdef policyUGapE < ExpPolicy
-    % UGapE for any bandit
+    % UGapE for almost best arm identification, for fixed budget or fixed
+    % confidence
     %
     % From Best Arm Identification: A Unified Approach to Fixed Budget 
-    % and Fixed Confidence, Gabillon, Ghavamzadeh, Lazaric
+    % and Fixed Confidence
+    % by V. Gabillon, M. Ghavamzadeh, A. Lazaric
     
     properties
-        t % Number of the round
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
         eps
         delta % for fixed confidence
         a = 0.5 % Parameter (==a for budget, ==c for confidence)
         isBudget % budget (1) or confidence (0)
-        betas
+        betas % beta_k(t-1)
         b = 1 % bound on the max arm response
-        B
-        J
-        m
+        B % B_k(t)
+        J % selected arms
     end
     
     methods
@@ -38,7 +35,6 @@ classdef policyUGapE < ExpPolicy
             self.t = 1;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
-            self.m = numArms;
             self.J = zeros(0, 1);
             if strcmp(mode, 'budget')
                 self.isBudget = 1;
@@ -57,18 +53,22 @@ classdef policyUGapE < ExpPolicy
                 if self.isBudget
                     self.betas = self.b * sqrt(self.a ./ self.N);
                 else
-                    self.betas = self.b * sqrt(self.a * log(4*length(self.N)*(self.t-1)^3/self.delta) ./ self.N);
+                    self.betas = self.b * sqrt(self.a * ...
+                        log(4*length(self.N)*(self.t-1)^3 / self.delta) ...
+                        ./ self.N);
                 end
                 mu = self.S ./ self.N;
                 U = mu + self.betas;
                 [~, ou] = sort(U, 2, 'descend');
                 L = mu - self.betas;
                 mth_item = @(arr) arr(self.m);
-                self.B = arrayfun(@(k) U(mth_item(ou(ou ~= k))) - L(k), 1:length(L)); % m-max operator !
+                self.B = arrayfun(@(k) U(mth_item(ou(ou ~= k))) - L(k), ...
+                                  1:length(L)); % m-max operator
                 [~, ob] = sort(self.B, 2, 'ascend');
                 self.J = ob(1:self.m);
-                [~, u] = max(U(ob(self.m+1:end))); % u_t = argmax_{j\notin J} U_j(t)
-                u = ob(u+self.m);
+                % u_t = argmax_{j\notin J} U_j(t)
+                [~, u] = max(U(ob(self.m+1:end)));
+                u = ob(u + self.m);
                 [~, l] = min(L(self.J));
                 l = self.J(l);
                 if self.betas(l) > self.betas(u)
@@ -82,7 +82,7 @@ classdef policyUGapE < ExpPolicy
         
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
-            self.S(self.lastAction) = self.S(self.lastAction)  + reward;
+            self.S(self.lastAction) = self.S(self.lastAction) + reward;
             self.t = self.t + 1;
         end
         

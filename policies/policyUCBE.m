@@ -1,12 +1,11 @@
 classdef policyUCBE < ExpPolicy
-    % UCB-E for any bandit
+    % UCB-E for fixed budget and best arm identification
+    %
+    % From Best Arm Identification in Multi-Armed Bandits
+    % by J.-Y. Audibert, S. Bubeck, R. Munos
     
     properties
-        t % Number of the round
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        a = 1 % Parameter
+        a = 1 % exploration parameter
     end
     
     methods
@@ -23,7 +22,7 @@ classdef policyUCBE < ExpPolicy
             end
             if numArms > 1
                 throw(MException('EXPPOLICY:BadParameter', ...
-                    'SR can only find the best arm'));
+                    'UCB-E can only find the best arm'));
             end
             self.t = 1;
             self.N = zeros(1, nbActions);
@@ -36,14 +35,14 @@ classdef policyUCBE < ExpPolicy
             else
                 ucb =  self.S./self.N + sqrt(self.a./self.N);
                 m = max(ucb); I = find(ucb == m);
-                action = I(1+floor(length(I)*rand));
+                action = I(1 + floor(length(I)*rand));
             end
             self.lastAction = action;
         end
         
         function getReward(self, reward)
             self.N(self.lastAction) = self.N(self.lastAction) + 1; 
-            self.S(self.lastAction) = self.S(self.lastAction)  + reward;
+            self.S(self.lastAction) = self.S(self.lastAction) + reward;
             self.t = self.t + 1;
         end
         

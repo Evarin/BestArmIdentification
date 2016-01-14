@@ -1,18 +1,14 @@
 classdef policySH < ExpPolicy
-    % Sequential Halving for any bandit
+    % Sequential Halving for fixed budget and best arm identification
     %
     % From Almost Optimal Exploration in Multi-Armed Bandits
-    % Karnin, Koren, Somekh
+    % by Z. Karnin, T. Koren, O. Somekh
     
     properties
-        t % Number of the round
-        lastAction % Stores the last action played
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        A
         a = 1 % Parameter
-        T
-        nextStop
+        A % current subset of arms
+        T % maximum number of pulls
+        nextStop % next t to call checkpoint
     end
     
     methods
@@ -33,7 +29,8 @@ classdef policySH < ExpPolicy
             end
             self.t = 1;
             self.T = horizon(1);
-            self.nextStop = nbActions * floor(self.T / nbActions / ceil(log2(nbActions))) + 1;
+            self.nextStop = nbActions * ...
+                floor(self.T / nbActions / ceil(log2(nbActions)));
             self.A = 1:nbActions;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
@@ -51,7 +48,8 @@ classdef policySH < ExpPolicy
                 p = self.S ./ self.N;
                 [~, sp] = sort(p(self.A), 2, 'descend');
                 self.A = self.A(sp(1:ceil(length(sp)/2)));
-                self.nextStop = length(self.A) * floor(self.T / length(self.A) / ceil(log2(length(self.N)))) + self.t;
+                self.nextStop = self.t + length(self.A) * ...
+                    floor(self.T / length(self.A) / ceil(log2(length(self.N))));
             end
             self.t = self.t + 1;
         end

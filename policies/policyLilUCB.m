@@ -1,22 +1,15 @@
 classdef policyLilUCB < ExpPolicy
-    % lil'UCB for all bandits
+    % lil'UCB for fixed confidence, almost best arm identification
     %
-    % From lil’ UCB : An Optimal Exploration Algorithm for Multi-Armed
-    % Bandits, Jamieson, Malloy, Nowak, Bubeck, 2014
+    % From lil’ UCB : An Optimal Exploration Algorithm for Multi-Armed Bandits
+    % by K. Jamieson, M. Malloy, R. Nowak, S. Bubeck, 2014
     
     properties
-        t % Number of the round
-        N % Number of times each action has been chosen
-        S % Cumulated reward with each action
-        lastAction % Stores the last action played
-        delta
-        eps = 0.01
-        beta = 1
-        lambda = 9
-        m % Useless
+        delta % probability of success acted
+        eps = 0.01 % parameter
+        beta = 1 % parameter
+        lambda = 9 % parameter
         sigma % Parameter (subgaussian variance)
-        round % Current round
-        stopping % stopping criterion reached
     end
     
     methods
@@ -44,22 +37,21 @@ classdef policyLilUCB < ExpPolicy
             end
             self.eps = horizon(1);
             self.delta = horizon(2);
-            self.m = 1;
             self.t = 1;
-            self.round = 1;
+            self.k = nbActions;
             self.N = zeros(1, nbActions);
             self.S = zeros(1, nbActions);
-            self.stopping = 0;
         end
         
         function action = decision(self)
-            if self.t <= length(self.N)
+            if self.t <= self.k
                 action = self.t;
             else
                 mu = self.S./self.N;
-                rac = 2*self.sigma^2*(1+self.eps)*log(log((1+self.eps).*self.N)/self.delta)./self.N;
+                rac = 2 * self.sigma^2 * (1+self.eps) * ...
+                    log(log((1+self.eps) .* self.N)/self.delta) ./ self.N;
                 rac(rac<0) = +Inf;
-                fun = mu + (1+self.beta)*(1+sqrt(self.eps))*sqrt(rac);
+                fun = mu + (1+self.beta) * (1+sqrt(self.eps)) * sqrt(rac);
                 [~, action] = max(fun);
             end
             self.lastAction = action;
@@ -75,12 +67,9 @@ classdef policyLilUCB < ExpPolicy
             [~, J] = max(self.N);
         end
         
-        function b = fbeta(self, u, t)
-            b = sqrt(0.5*log(1.25*length(self.N)*t^4/self.delta)./u);
-        end
-        
         function r = isConfident(self)
-            r = self.t>length(self.N) && any(self.N >= 1 + self.lambda.*(sum(self.N)-self.N));
+            r = self.t > self.k && ...
+                any(self.N >= 1 + self.lambda.*(sum(self.N)-self.N));
         end
         
     end
