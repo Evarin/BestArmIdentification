@@ -39,7 +39,7 @@ classdef policySR < ExpPolicy
         end
         
         function action = decision(self)
-            self.lastAction = 1+mod(self.t,length(self.A));
+            self.lastAction = 1 + mod(self.t, length(self.A));
             action = self.A(self.lastAction);
         end
         

@@ -50,7 +50,7 @@ classdef policyExpGap < ExpPolicy
                 self.tr = self.t + length(self.A) * round(2/er^2 * log(2/dr))-1;
                 self.phase = 1;
             end
-            action = mod(self.t, length(self.A)) + 1;
+            action = self.A(mod(self.t, length(self.A)) + 1);
             self.lastAction = action;
         end
         
@@ -69,7 +69,6 @@ classdef policyExpGap < ExpPolicy
                         sp = sort(p(self.A));
                         med = sp(ceil(length(p)/2));
                         self.A = self.A(p(self.A)>=med);
-                        self.lastA = self.t;
                         self.l = self.l + 1;
                         self.eps = self.eps * 0.75;
                         self.delta = self.delta / 2;
@@ -82,7 +81,7 @@ classdef policyExpGap < ExpPolicy
                         self.tr = self.t + length(self.A) * round(1/(self.eps/2)^2*log(3/self.delta));
                     case 0
                         er = 2^(-self.r)/4;
-                        self.A = self.Ar(self.p(self.Ar) >= self.p(self.A) - er);
+                        self.A = self.Ar(p(self.Ar) >= p(self.A) - er);
                         self.r = self.r + 1;
                 end
             end
@@ -90,7 +89,7 @@ classdef policyExpGap < ExpPolicy
         end
         
         function J = getRecommendation(self)
-            [~, J] = self.A;
+            J = self.A;
         end
         
         function r = isConfident(self)

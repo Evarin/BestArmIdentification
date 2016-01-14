@@ -10,8 +10,8 @@ game = ExpGame(MAB); fname = 'results/test';
 disp('-- Fixed budget algorithms');
 % Choice of policies to be run
 %policies = {policyUCBE, policySR, policyOptMAI};
-%policies = {policyUGapE};
-policies = {};
+policies = {policyAUCBE};
+%policies = {};
 
 % horizon is length of play, N is number of plays 
 horizon = [50, 0.1]; N = 20;
