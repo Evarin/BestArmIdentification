@@ -19,15 +19,14 @@ function plotResults(game, horizon, N, policies, mode, fname)
     policynames = {};
     perror = zeros(1, l);
     times = zeros(1, l);
-    colors = {'r', 'g', 'b', 'k', 'y', 'c', 'm', 'g'};
+    colors = {'r', 'y', 'g', 'c', 'b', 'm', 'k', [0.7 0 0], [0.7 0.7 0], [0 0.7 0], [0 0.7 0.7], [0 0 0.7], [0.7 0 0.7], 'w'};
     for i = 1:l
         % Load saved results and compute regret
         hr = num2str(horizon(1));
         if numel(horizon)>1
             hr = [hr '_' num2str(horizon(2))];
         end
-        load([fname '_' mode '_h_' hr '_N_' num2str(N) '_' class(policies{i}) '.mat']);
-        policyName = class(policies{i}); policyName = policyName(7:end);
+        load([fname '_' mode '_h_' hr '_N_' num2str(N) '_' policies{i}.getId() '.mat']);
         policynames{i} = policyName;
         perror(i) = sum(recommendations ~= iBest)/length(recommendations);
         ptimes(i) = sum(times)/length(times);
@@ -39,7 +38,7 @@ function plotResults(game, horizon, N, policies, mode, fname)
     hold on;
     title('Probability of error');
     for i=1:l
-        bar(i, perror(i), colors{i});
+        bar(i, perror(i), 'FaceColor', colors{i});
     end
     legend(policynames);
     
@@ -49,8 +48,10 @@ function plotResults(game, horizon, N, policies, mode, fname)
     hold on;
     title('Time to achieve confidence');
     % Common y-axis values
+    set(gca,'YScale','log')
     for i=1:l
-        bar(i, ptimes(i), colors{i});
+        bar(i, ptimes(i), 'FaceColor', colors{i});
     end
+    axis([0 (l+2) (min(ptimes)/100) max(ptimes)]);
     legend(policynames);
 end

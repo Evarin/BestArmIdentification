@@ -77,5 +77,13 @@ classdef policyAUCBE < ExpPolicy
             [~, J] = max(self.S ./ self.N);
         end
         
+        
+        function n = getName(self)
+            n = sprintf('AUCB-E c=%g', self.a);
+        end
+        
+        function n = getId(self)
+            n = sprintf('AUCBE%g', self.a);
+        end
     end
 end

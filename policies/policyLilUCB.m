@@ -5,7 +5,7 @@ classdef policyLilUCB < ExpPolicy
     % by K. Jamieson, M. Malloy, R. Nowak, S. Bubeck, 2014
     
     properties
-        delta % probability of success acted
+        delta % probability of success asked
         eps = 0.01 % parameter
         beta = 1 % parameter
         lambda = 9 % parameter

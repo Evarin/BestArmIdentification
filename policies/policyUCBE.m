@@ -6,12 +6,18 @@ classdef policyUCBE < ExpPolicy
     
     properties
         a = 1 % exploration parameter
+        descr
     end
     
     methods
-        function self = policyUCBE(a)
+        function self = policyUCBE(a, descr)
             if (nargin >= 1)
                 self.a = a;
+            end
+            if (nargin >= 2)
+                self.descr = descr;
+            else
+                self.descr = sprintf(' a=%g', self.a);
             end
         end
         
@@ -50,5 +56,12 @@ classdef policyUCBE < ExpPolicy
             [~, J] = max(self.S./self.N);
         end
         
+        function n = getName(self)
+            n = sprintf('UCB-E%s', self.descr);
+        end
+        
+        function n = getId(self)
+            n = sprintf('UCBE%g', self.a);
+        end
     end
 end

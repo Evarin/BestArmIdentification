@@ -57,7 +57,7 @@ classdef policyME < ExpPolicy
             if self.nextStop > 0
                 p = self.S ./ self.N;
                 sp = sort(p(self.A));
-                med = sp(ceil(length(p)/2));
+                med = (sp(floor(length(sp)/2)) + sp(ceil(length(sp)/2+0.01)))/2;
                 self.A = self.A(p(self.A)>=med);
                 self.r = self.r + 1;
                 self.eps = self.eps * 0.75;

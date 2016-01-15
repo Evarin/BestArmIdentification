@@ -18,6 +18,13 @@ classdef ExpPolicy<handle
         function r = isConfident(self) % Fixed confidence setting : is it converged
             r = 0;
         end
+        function n = getName(self)
+            n = class(self);
+            n = n(7:end);
+        end
+        function n = getId(self)
+            n = self.getName();
+        end
     end
     
 end

@@ -62,18 +62,27 @@ classdef policyOptMAI < ExpPolicy
                     self.phase = 0;
                 case 2 % AR
                     s = length(self.A);
-                    mp = self.m - length(self.T); % K' = K - |T|
-                    Delta = max([p - sp(mp+1); sp(mp) - p]);
-                    subA = 1:length(self.A); % correspondance original A -> current A
-                    while length(self.T) < self.m && ...
-                            length(self.A) > 0.75 * s
-                        [~, ia] = max(Delta(subA)); % relative to the current A
-                        a = subA(ia); % relative to the previous A
-                        ta = self.A(ia); % relative to the true set
-                        subA = subA(1:length(subA) ~= ia);
-                        self.A = self.A(self.A ~= ta);
-                        if p(a) >= sp(mp+1)
-                            self.T = [self.T ta];
+                    if s == 1
+                        self.T = self.A(:);
+                        self.A = zeros(1, 0);
+                    elseif s == 2
+                        [~, m] = max(p);
+                        self.T = self.A(m);
+                        self.A = zeros(1, 0);
+                    else
+                        mp = self.m - length(self.T); % K' = K - |T|
+                        Delta = max([p - sp(mp+1); sp(mp) - p]);
+                        subA = 1:length(self.A); % corresponding previous A -> current A
+                        while length(self.T) < self.m && ...
+                                length(self.A) > 0.75 * s
+                            [~, ia] = max(Delta(subA)); % relative to the current A
+                            a = subA(ia); % relative to the previous A
+                            ta = self.A(ia); % relative to the true set
+                            subA = subA(1:length(subA) ~= ia);
+                            self.A = self.A(self.A ~= ta);
+                            if p(a) >= sp(mp+1)
+                                self.T = [self.T ta];
+                            end
                         end
                     end
                     self.phase = 0;
@@ -97,11 +106,11 @@ classdef policyOptMAI < ExpPolicy
         end
         
         function J = getRecommendation(self)
-            [~, J] = max(self.N);
+            J = self.T;
         end
         
         function r = isConfident(self)
-            r = self.stopping;
+            r = self.stopping || (length(self.S) == 1);
         end
         
     end

@@ -62,9 +62,10 @@ classdef policyUGapE < ExpPolicy
                 U = mu + self.betas;
                 [~, ou] = sort(U, 2, 'descend');
                 L = mu - self.betas;
-                mth_item = @(arr, m) arr(m);
-                self.B = arrayfun(@(k) U(mth_item(ou(ou ~= k), self.m)) - L(k), ...
-                                  1:length(L)); % m-max operator
+                self.B = U;
+                self.B(ou(1:self.m)) = U(ou(self.m+1));
+                self.B(ou(self.m+1:end)) = U(ou(self.m)); % m-max
+                self.B = self.B - L;
                 [~, ob] = sort(self.B, 2, 'ascend');
                 self.J = ob(1:self.m);
                 % u_t = argmax_{j\notin J} U_j(t)
