@@ -15,7 +15,17 @@ function experiment(game, horizon, numArms, N, policy, mode, fname)
     fprintf('%s %d: ', policy.getName(), N);
     H1 = game.H1;
     policyName = policy.getName();
-    for j = 1:N
+    % Expectations of the arms
+    mu = game.means;
+    hr = num2str(horizon(1));
+    if numel(horizon)>1
+        hr = [hr '_' num2str(horizon(2))];
+    end
+    foutput = [fname '_' mode '_h_' hr '_N_' num2str(N) '_' policy.getId() '.mat'];
+    if exist(foutput, 'file')
+        return
+    end
+        for j = 1:N
         fprintf('|%d', j);
         [r, t] = game.play(policy, mode, horizon, numArms);
         if isempty(r)
@@ -27,14 +37,7 @@ function experiment(game, horizon, numArms, N, policy, mode, fname)
         % Once every N/50 runs, display something and save current state
         % of variables
         if (rem(j, floor(N/50))==0) || (j == N)
-            %fprintf(' %d', j);
-            % Expectations of the arms
-            mu = game.means;
-            hr = num2str(horizon(1));
-            if numel(horizon)>1
-                hr = [hr '_' num2str(horizon(2))];
-            end
-            save([fname '_' mode '_h_' hr '_N_' num2str(N) '_' policy.getId() '.mat'],...
+            save(foutput,...
               'mu', 'horizon', 'N', 'recommendations', 'times', 'H1', 'policyName');
         end
     end

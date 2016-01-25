@@ -124,12 +124,12 @@ pause;
 
 
 %% Fifth scenario: Truncated Exponential bandits
-disp('--- Fifth scenario: Exponential bandit vs Bernouilli bad arms');
+disp('--- Fifth scenario: Exponential bandits');
 
 MAB = {};
-MAB{1} = armExp(0.5);
-for i=1:20
-    MAB{i} = armBernoulli(0.4);
+MAB{1} = armExp(1.59); % mean 0.5
+for i=2:20
+    MAB{i} = armExp(2.23); % mean 0.4
 end
 game = ExpGame(MAB); fname = 'results/expArms1';
 

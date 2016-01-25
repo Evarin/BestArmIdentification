@@ -7,7 +7,7 @@ classdef armExp<Arm
     
     methods
         function self = armExp(lambda)
-            self.lambda=lambda;
+            self.lambda = lambda;
             self.mean = (1/lambda)*(1-exp(-lambda));
             self.var = 1; % compute it yourself !
         end

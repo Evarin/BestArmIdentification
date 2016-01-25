@@ -41,6 +41,7 @@ classdef policyExpGap < ExpPolicy
         
         function action = decision(self)
             switch self.phase
+                % TODO Could be rewritten so it uses previous pulls
                 case 1 % itself's procedure
                     action = self.A(mod(self.t, length(self.A)) + 1);
                 case 2 % ME
@@ -82,7 +83,7 @@ classdef policyExpGap < ExpPolicy
             if self.phase == 0 % Restarting the loop
                 self.er = 2^(-self.r)/4;
                 self.dr = self.delta / (50*self.r^3);
-                self.nextStop = self.t + length(self.A) * round(2/self.er^2 * log(2/self.dr))
+                self.nextStop = self.t + length(self.A) * round(2/self.er^2 * log(2/self.dr));
                 self.r = self.r + 1;
                 self.phase = 1;
             end

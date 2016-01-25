@@ -58,7 +58,7 @@ classdef policyOptMAI < ExpPolicy
             sp = sort(p, 2, 'descend');
             switch self.phase
                 case 1 % QE
-                    self.A = self.A(p >= sp(ceil(length(sp)/4)));
+                    self.A = self.A(p >= sp(floor(length(sp)*0.75)));
                     self.phase = 0;
                 case 2 % AR
                     s = length(self.A);
@@ -88,7 +88,7 @@ classdef policyOptMAI < ExpPolicy
                     self.phase = 0;
             end
             if self.phase == 0 % reset
-                self.betar = (exp(0.2)*0.75) ^ self.r * 0.25 * exp(0.2);
+                self.betar = (exp(0.2)*0.75) ^ self.r * (1-exp(0.2)*0.75);
                 self.r = self.r + 1;
                 if length(self.T) < self.m && ~isempty(self.A)
                     if length(self.A) >= 4*self.m

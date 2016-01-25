@@ -14,12 +14,13 @@ MAB{7} = armBernoulli(0.5);
 game = ExpGame(MAB); fname = 'results/BAI_exp1';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*2000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
+%policies = {policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [2000, 0.1]; N = 50;
+horizon = [2000, 0.1]; N = 500;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -48,12 +49,12 @@ MAB{14} = armBernoulli(0.5);
 game = ExpGame(MAB); fname = 'results/BAI_exp2';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*2000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [2000, 0.1]; N = 50;
+horizon = [2000, 0.1]; N = 500;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -79,12 +80,12 @@ end
 game = ExpGame(MAB); fname = 'results/BAI_exp3';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*2000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [2000, 0.1]; N = 50;
+horizon = [2000, 0.1]; N = 500;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -112,12 +113,12 @@ end
 game = ExpGame(MAB); fname = 'results/BAI_exp6';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(6000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*6000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [6000, 0.1]; N = 50;
+horizon = [6000, 0.1]; N = 500;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -135,19 +136,19 @@ pause;
 disp('--- Fifth scenario: Exponential bandit vs Bernouilli bad arms');
 
 MAB = {};
-MAB{1} = armExp(0.5);
-for i=1:20
+MAB{1} = armExp(1.59); % mean 0.5
+for i=2:20
     MAB{i} = armBernoulli(0.4);
 end
 game = ExpGame(MAB); fname = 'results/expArms1';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(6000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*6000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [6000, 0.1]; N = 50;
+horizon = [6000, 0.1]; N = 200;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -165,19 +166,19 @@ pause;
 disp('--- Sixth scenario: Exponential bandits, One group of bad arms');
 
 MAB = {};
-MAB{1} = armExp(0.5);
-for i=1:20
-    MAB{i} = armExp(0.3);
+MAB{1} = armExp(1.59); % mean 0.5
+for i=2:20
+    MAB{i} = armExp(2.23); % mean 0.4
 end
 game = ExpGame(MAB); fname = 'results/expexpArms1';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*2000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [6000, 0.1]; N = 50;
+horizon = [2000, 0.1]; N = 200;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
@@ -192,22 +193,22 @@ pause;
 
 
 %% Seventh scenario: Truncated Exponential bandits
-disp('--- Seventh scenario: Exponential bandits, One group of bad arms, T=12000');
+disp('--- Seventh scenario: Exponential bandits, One group of bad arms, T=6000');
 
 MAB = {};
-MAB{1} = armExp(0.5);
-for i=1:20
-    MAB{i} = armExp(0.3);
+MAB{1} = armExp(1.59); % mean 0.5
+for i=2:20
+    MAB{i} = armExp(2.23); % mean 0.4
 end
 game = ExpGame(MAB); fname = 'results/expArms3';
 
 % Choice of policies to be run
-policies = {policyNaive, policyUCB, policyUCBE(2000/game.H1, ' a=n/H'), ...
-    policyUCBE(2000/game.H1, ' a=4n/H'), policyAUCBE(0.5), ...
+policies = {policyNaive, policyUCB, policyUCBE(6000/game.H1, ' a=T/H'), ...
+    policyUCBE(4*6000/game.H1, ' a=4T/H'), policyAUCBE(0.5), ...
     policyAUCBE(1), policySR, policyUGapE, policySH, policyOptMAI};
 
 % horizon is length of play, N is number of plays 
-horizon = [12000, 0.1]; N = 50;
+horizon = [6000, 0.1]; N = 200;
 
 % Run everything one policy after each other
 defaultStream = RandStream.getGlobalStream; 
